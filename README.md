@@ -46,7 +46,8 @@ logs:new()
 :Build() -- end build embed
 :Send()
 ```
-![`Simple example demonstration`](https://i.imgur.com/Rxmv8lO.png)
+![Simple example demonstration](https://i.imgur.com/Rxmv8lO.png)
+
 **Relay chat**
 ```lua
 local logs = include("libs/message-builder.lua")
@@ -90,6 +91,7 @@ hook.Add("PlayerSay", "say.log", function(pl, text)
 end)
 ```
 ![`Relay chat demonstration`](https://i.imgur.com/tTcIz7n.png)
+
 **Connection logs**
 ```lua
 local logs = include("libs/message-builder.lua")
@@ -120,5 +122,5 @@ hook.Add("player_connect", "connect.logs", function(data)
     :Build():Send()
 end)
 ```
-![`Connection logs demonstration`](https://i.imgur.com/qQ6yHFZ.png)
+![Connection logs demonstration](https://i.imgur.com/qQ6yHFZ.png)
 ---
