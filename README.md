@@ -65,14 +65,19 @@ end
 local mt = FindMetaTable("Player")
 
 local avatars = {}
+local fallback = "https://i.imgur.com/5Bj3tOU.png"
 
 function mt:GetAvatar(callback)
+    if self:IsBot() or not self:SteamID64() then
+        callback(fallback)
+        return
+    end
     coroutine.wrap(function()
         local content = request("https://steamcommunity.com/profiles/" .. self:SteamID64() .. "?xml=1")
         local avatar = string.match(content, "<avatarFull><!%[CDATA%[(.-)%]%]></avatarFull>")
 
         if not avatar or #avatar < 1 then
-            avatar = "https://i.imgur.com/5Bj3tOU.png"
+            avatar = fallback
         end
 
         callback(avatar)
