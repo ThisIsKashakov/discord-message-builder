@@ -53,12 +53,22 @@ logs:new()
 local logs = include("libs/message-builder.lua")
 local builder = logs:new()
 
+local function request(url)
+    local thread = coroutine.running()
+    http.Fetch(url, function(content)
+        coroutine.resume(thread, content)
+    end)
+
+    return coroutine.yield()
+end
+
 local mt = FindMetaTable("Player")
 
-function mt:GetAvatar(callback)
-    local url = "https://steamcommunity.com/profiles/" .. self:SteamID64() .. "?xml=1"
+local avatars = {}
 
-    http.Fetch(url, function(content)
+function mt:GetAvatar(callback)
+    coroutine.wrap(function()
+        local content = request("https://steamcommunity.com/profiles/" .. self:SteamID64() .. "?xml=1")
         local avatar = string.match(content, "<avatarFull><!%[CDATA%[(.-)%]%]></avatarFull>")
 
         if not avatar or #avatar < 1 then
@@ -66,10 +76,17 @@ function mt:GetAvatar(callback)
         end
 
         callback(avatar)
-    end)
+    end)()
 end
 
 local url = "" -- enter webhook url
+
+hook.Add("PlayerAuthed", "cache.avatars", function(pl)
+    if avatars[pl:SteamID64()] then return end
+    pl:GetAvatar(function(avatar)
+        avatars[pl:SteamID64()] = avatar
+    end)
+end)
 
 hook.Add("PlayerSay", "say.log", function(pl, text)
     if not IsValid(pl) then return end
@@ -78,14 +95,14 @@ hook.Add("PlayerSay", "say.log", function(pl, text)
     message:AddContent(text)
     message:SetUsername(nick)
 
-    if not pl.avatar then
+    if not avatars[pl:SteamID64()] then
         pl:GetAvatar(function(avatar)
             message:SetAvatar(avatar)
             message:Send()
-            pl.avatar = avatar
+            avatars[pl:SteamID64()] = avatar
         end)
     else
-        message:SetAvatar(pl.avatar)
+        message:SetAvatar(avatars[pl:SteamID64()])
         message:Send()
     end
 end)
