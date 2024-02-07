@@ -121,12 +121,15 @@ local builder = logs:new()
 
 local url = "" -- enter webhook url
 
+local limits = {}
+
 gameevent.Listen("player_connect")
 
 hook.Add("player_connect", "connect.logs", function(data)
     local bot = data["bot"]
     if bot == 1 then return end
     local steamid = data["networkid"]
+    if limits[steamid] and isnumber(limits[steamid]) and limits[steamid] > CurTime() then return end
     local ip = data["address"]
     local name = data["name"]
     local message = builder:Init(url)
@@ -142,6 +145,7 @@ hook.Add("player_connect", "connect.logs", function(data)
     :Field():SetName("IP"):SetValue("||[" .. ip .. "](https://check-host.net/ip-info?host=" .. string.Explode(":", ip)[1] .. ")||"):Inline(true):Build()
     :Timestamp()
     :Build():Send()
+    limits[steamid] = CurTime() + 1
 end)
 ```
 ![Connection logs demonstration](https://i.imgur.com/qQ6yHFZ.png)
